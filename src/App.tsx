@@ -3,6 +3,7 @@ import './App.css'
 import { Container, Row, Col, Button, Stack } from 'react-bootstrap'
 
 import { useStore } from './hooks/useStore'
+import { useDebounce } from './hooks/useDebounce'
 import { AUTO_LANGUAGES } from './constants'
 import { ArrowIcon } from './components/Icons'
 import { LanguageSelector } from './components/LanguageSelector'
@@ -14,16 +15,18 @@ import { translate } from './services/translate'
 function App () {
   const { fromLanguage, toLanguage, fromText, result, interchangeLanguages, setFromLanguage, setToLanguage, setFromText, setResult, loading } = useStore()
 
-  useEffect(() => {
-    if (fromText === '') return
+  const debounceFromText = useDebounce(fromText, 300)
 
-    translate({ fromLanguage, toLanguage, text: fromText })
+  useEffect(() => {
+    if (debounceFromText === '') return
+
+    translate({ fromLanguage, toLanguage, text: debounceFromText })
       .then(result => {
         if (result == null) return
         setResult(result)
       })
       .catch(() => { setResult('Error') })
-  }, [fromText])
+  }, [debounceFromText, fromLanguage, toLanguage])
 
   return (
     <Container fluid>
